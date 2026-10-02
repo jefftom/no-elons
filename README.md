@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/app/icon.svg" width="72" alt="NoElons logo: a speech bubble with a no sign" />
+  <img src="src/app/icon.svg" width="72" alt="NoElons logo: a red stop sign that says NO" />
 </p>
 
 <h1 align="center">NoElons</h1>

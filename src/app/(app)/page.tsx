@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Clock, Images, Scale, Sparkles } from "lucide-react";
 import { Composer } from "@/components/composer";
 import { EmptyState, Feed } from "@/components/feed";
-import { Logo } from "@/components/logo";
+import { StopSign } from "@/components/logo";
 import { PageHeader } from "@/components/page-header";
 import { getViewerInfo } from "@/server/auth/viewer";
 import { everyoneFeed, homeFeed } from "@/server/services/feeds";
@@ -98,12 +98,14 @@ function Landing({ goodbye }: { goodbye: boolean }) {
         <p className="relative mb-6 rounded-xl bg-surface-2 px-4 py-3 text-sm">Your account and everything in it has been deleted. Take care. 👋</p>
       ) : null}
       <div className="relative">
-        <Logo className="sm:hidden" />
-        <h1 className="mt-4 font-display text-[44px] font-black leading-[1.02] tracking-tight sm:mt-0 sm:text-[56px]">
-          Social media,
-          <br />
-          <span className="text-accent">minus the billionaire.</span>
-        </h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="font-display text-[44px] font-black leading-[1.02] tracking-tight sm:text-[56px]">
+            Social media,
+            <br />
+            <span className="text-accent">minus the billionaire.</span>
+          </h1>
+          <StopSign className="size-24 shrink-0 rotate-[8deg] drop-shadow-lg sm:size-36" />
+        </div>
         <p className="mt-4 max-w-md text-lg text-muted">
           The best parts of old-school Twitter and early Instagram — a chronological timeline, a photo grid, real conversations —
           on a network nobody gets to own.

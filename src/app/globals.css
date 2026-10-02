@@ -13,6 +13,7 @@
   --ink: #18141d;
   --muted: #6f6777;
   --accent: #ff5a3c;
+  --stop: #e4312b;
   --accent-hover: #ec4627;
   --accent-soft: #ffece6;
   --accent-ink: #ffffff;
@@ -37,6 +38,7 @@
     --ink: #f3efe9;
     --muted: #9c95a6;
     --accent: #ff6b4f;
+    --stop: #ef3a33;
     --accent-hover: #ff8269;
     --accent-soft: #3b1f19;
     --accent-ink: #160b08;
@@ -61,6 +63,7 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
+  --color-stop: var(--stop);
   --color-accent-hover: var(--accent-hover);
   --color-accent-soft: var(--accent-soft);
   --color-accent-ink: var(--accent-ink);
