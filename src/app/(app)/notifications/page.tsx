@@ -26,9 +26,13 @@ export default async function NotificationsPage({ searchParams }: { searchParams
   const viewer = (await getViewerInfo())!;
   const cursor = parseCursor((await searchParams).cursor);
   const { items, nextCursor } = await listNotifications(viewer.id, cursor);
-  // Seeing them counts as reading them (the badge catches up on its next poll).
-  const unreadIds = items.filter((n) => n.unread).flatMap((n) => n.ids);
-  if (unreadIds.length) await markRead(viewer.id, unreadIds);
+  // Opening the tab reads everything (like every other app); older pages mark what they show.
+  // The badge catches up on its next poll.
+  if (!cursor) await markRead(viewer.id);
+  else {
+    const unreadIds = items.filter((n) => n.unread).flatMap((n) => n.ids);
+    if (unreadIds.length) await markRead(viewer.id, unreadIds);
+  }
 
   return (
     <>

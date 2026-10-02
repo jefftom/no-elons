@@ -158,6 +158,10 @@ export async function deleteAccount(userId: string, confirmUsername: string, pas
       ) sub
       where p.id = sub.quote_of_id and p.author_id <> ${userId}
     `);
+    await tx.execute(sql`
+      update lists set member_count = greatest(member_count - 1, 0)
+      where id in (select list_id from list_members where user_id = ${userId})
+    `);
     await tx.delete(users).where(eq(users.id, userId));
   });
   await deleteBlobs([user.avatarKey, user.bannerKey, ...media.flatMap((m) => [m.a, m.b])]);

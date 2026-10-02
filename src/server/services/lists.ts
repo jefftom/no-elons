@@ -80,11 +80,13 @@ export async function addListMember(viewerId: string, listId: string, username: 
   const [user] = await db.select().from(users).where(eq(users.username, username.trim().replace(/^@/, "").toLowerCase()));
   if (!user || user.suspendedAt) throw new AppError("No account with that username.", "not_found");
   await db.transaction(async (tx) => {
+    // Lock the list so concurrent adds serialise: the cap and the counter stay exact.
+    const [list] = await tx.select({ memberCount: lists.memberCount }).from(lists).where(eq(lists.id, listId)).for("update");
+    if (!list) throw new AppError("That list doesn't exist.", "not_found");
+    if (list.memberCount >= 500) throw new AppError("Lists can have up to 500 members.");
     const inserted = await tx.insert(listMembers).values({ listId, userId: user.id }).onConflictDoNothing().returning();
     if (!inserted.length) return;
-    const [{ n }] = await tx.select({ n: sql<number>`count(*)::int` }).from(listMembers).where(eq(listMembers.listId, listId));
-    if (n > 500) throw new AppError("Lists can have up to 500 members.");
-    await tx.update(lists).set({ memberCount: n }).where(eq(lists.id, listId));
+    await tx.update(lists).set({ memberCount: sql`${lists.memberCount} + 1` }).where(eq(lists.id, listId));
   });
 }
 

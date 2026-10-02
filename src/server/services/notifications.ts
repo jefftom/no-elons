@@ -1,5 +1,5 @@
 /** Read side of notifications. */
-import { and, count, desc, eq, inArray, isNull, lt } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
 import { db } from "../db";
 import { notifications, users } from "../db/schema";
 import { toUserSummary, type PostView, type UserSummary } from "../views";
@@ -79,12 +79,28 @@ export async function listNotifications(
   return { items, nextCursor: rows.length > limit ? slice[slice.length - 1].n.id : null };
 }
 
+/**
+ * Unread count for the badge. Applies the same visibility rules as the list
+ * (suspended/blocked/muted actors, deleted/removed posts) so the badge never
+ * counts something the notifications tab won't show.
+ */
 export async function unreadCount(userId: string): Promise<number> {
-  const [row] = await db
-    .select({ n: count() })
-    .from(notifications)
-    .where(and(eq(notifications.recipientId, userId), isNull(notifications.readAt)));
-  return row?.n ?? 0;
+  const [row] = await db.execute<{ n: number }>(sql`
+    select count(*)::int as n
+    from notifications n
+    join users a on a.id = n.actor_id and a.suspended_at is null
+    left join posts p on p.id = n.post_id
+    where n.recipient_id = ${userId}
+      and n.read_at is null
+      and (n.post_id is null or (p.deleted_at is null and p.removed_at is null))
+      and not exists (
+        select 1 from blocks b
+        where (b.blocker_id = ${userId} and b.blocked_id = n.actor_id)
+           or (b.blocker_id = n.actor_id and b.blocked_id = ${userId})
+      )
+      and not exists (select 1 from mutes m where m.muter_id = ${userId} and m.muted_id = n.actor_id)
+  `);
+  return Number(row?.n ?? 0);
 }
 
 export async function markRead(userId: string, ids?: string[]): Promise<void> {

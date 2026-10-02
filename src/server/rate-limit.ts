@@ -33,6 +33,7 @@ export function rateLimit(key: string, limit: number, windowMs: number): RateLim
 
 export const LIMITS_PER_ACTION = {
   login: { limit: 10, windowMs: 15 * 60_000 },
+  loginAccount: { limit: 30, windowMs: 15 * 60_000 },
   signup: { limit: 5, windowMs: 60 * 60_000 },
   post: { limit: 60, windowMs: 15 * 60_000 },
   interact: { limit: 600, windowMs: 15 * 60_000 },

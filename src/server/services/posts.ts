@@ -5,7 +5,7 @@
  * counters, the hashtag/mention indexes and notifications, so readers never
  * have to compute anything expensive.
  */
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { uuidv7 } from "@/lib/ids";
 import { LIMITS, editWindowOpen } from "@/lib/limits";
 import { extractHashtags, extractMentions } from "@/lib/text";
@@ -221,11 +221,15 @@ export async function editPost(
   if (body === post.body && contentWarning === post.contentWarning) return;
 
   await db.transaction(async (tx) => {
+    // Lock the row and re-read it so concurrent edits each record the version they replaced.
+    const [current] = await tx.select().from(posts).where(eq(posts.id, postId)).for("update");
+    if (!current || current.deletedAt || current.removedAt) throw new AppError("That post isn't available any more.", "not_found");
+    if (body === current.body && contentWarning === current.contentWarning) return;
     await tx.insert(postRevisions).values({
       postId,
-      body: post.body,
-      contentWarning: post.contentWarning,
-      publishedAt: post.editedAt ?? post.createdAt,
+      body: current.body,
+      contentWarning: current.contentWarning,
+      publishedAt: current.editedAt ?? current.createdAt,
     });
     await tx.update(posts).set({ body, contentWarning, editedAt: new Date() }).where(eq(posts.id, postId));
 
@@ -233,9 +237,9 @@ export async function editPost(
       (await tx.select({ userId: mentions.userId }).from(mentions).where(eq(mentions.postId, postId))).map((m) => m.userId),
     );
     await clearTextIndex(tx, postId);
-    const after = await indexText(tx, postId, viewerId, body, post.createdAt);
+    const after = await indexText(tx, postId, viewerId, body, current.createdAt);
     for (const userId of after) {
-      if (!before.has(userId) && userId !== post.replyToAuthorId) {
+      if (!before.has(userId) && userId !== current.replyToAuthorId) {
         await notify(tx, { recipientId: userId, actorId: viewerId, type: "mention", postId });
       }
     }
@@ -262,14 +266,17 @@ export async function deletePost(viewerId: string, postId: string): Promise<void
 
   const blobKeys: string[] = [];
   await db.transaction(async (tx) => {
-    const media = await tx.delete(postMedia).where(eq(postMedia.postId, postId)).returning();
-    for (const m of media) blobKeys.push(m.storageKey, m.thumbKey);
-
     // Tombstone: the row stays so replies keep their context, the content goes.
-    await tx
+    // The `deleted_at IS NULL` guard makes concurrent deletes count once.
+    const [tombstoned] = await tx
       .update(posts)
       .set({ deletedAt: new Date(), body: "", contentWarning: null, mediaCount: 0 })
-      .where(eq(posts.id, postId));
+      .where(and(eq(posts.id, postId), isNull(posts.deletedAt)))
+      .returning({ id: posts.id });
+    if (!tombstoned) return;
+
+    const media = await tx.delete(postMedia).where(eq(postMedia.postId, postId)).returning();
+    for (const m of media) blobKeys.push(m.storageKey, m.thumbKey);
     await clearTextIndex(tx, postId);
     await tx.delete(postRevisions).where(eq(postRevisions.postId, postId));
     await tx.delete(notifications).where(eq(notifications.postId, postId));

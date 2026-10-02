@@ -289,9 +289,11 @@ Why it matters:
 - Full size is ≤ 2048 px WebP at q82. The grid thumbnail is a 640×640 attention-cropped WebP. The dominant colour is
   stored as a loading placeholder.
 - Avatars are 400×400 and banners 1500×500.
-- Keys are content-addressed by a fresh UUIDv7 (`p/2026/10/<id>.webp`), so blobs are **immutable** and served with
-  `Cache-Control: immutable, max-age=1y`. A new upload always gets a new key, which means caches never need
-  invalidating.
+- Keys are content-addressed by a fresh UUIDv7 (`p/2026/10/<id>.webp`), so a key's bytes **never change**: a new
+  upload always gets a new key, and caches never serve a stale version. *Availability* can change, though. Before
+  serving a post photo, `/media` checks that its post isn't deleted or removed and its author isn't suspended. Responses
+  are cached for a day. In production, the moderation action also purges the key from the CDN (a hook on
+  `removePost`/`suspendUser`).
 - Storage sits behind a 4-method `BlobStorage` interface. `LocalStorage` writes to `MEDIA_DIR` and serves via
   `/media/*` with a locked-down CSP. In production, an S3-compatible driver (R2, S3, MinIO) plus a CDN replaces it,
   with `MEDIA_PUBLIC_BASE_URL` pointing at the CDN so the app never proxies image bytes.
@@ -362,7 +364,8 @@ flowchart LR
 | XSS | User text is **tokenized and rendered as React text nodes**, never as HTML. Links get `rel="noopener noreferrer nofollow ugc"`. Media is served with `default-src 'none'`. |
 | Open redirects | `?next=` must be a same-origin path (`/x`, not `//x` or `/\x`). |
 | Malicious uploads | Re-encoded through libvips with format sniffing and pixel limits. Storage keys are validated against a strict regex and resolved inside the media root. |
-| Abuse / brute force | Per-IP and per-account fixed-window rate limits on login, signup, posting, interactions, and reports (in-memory now, Redis when multi-instance). |
+| Abuse / brute force | Fixed-window rate limits on login (per IP+account *and* per account), signup, posting, interactions, and reports (in-memory now, Redis when multi-instance). The client IP is taken from `X-Forwarded-For` only at the hop our own proxy appended (`TRUST_PROXY_HOPS`, default 1), so spoofed entries are ignored. Production must run behind a reverse proxy/LB. |
+| Races | Counter-changing writes are conditional (`… WHERE deleted_at IS NULL RETURNING`), lists lock their row before membership changes, edits lock the post, and follow/block between the same pair is serialised with a transaction-scoped advisory lock. |
 | Clickjacking etc. | `X-Frame-Options: DENY`, `nosniff`, a strict `Referrer-Policy`, and a `Permissions-Policy` that disables camera, mic, geolocation, and FLoC. |
 | Location leaks | All photo metadata stripped at upload. |
 | Privacy by default | Likes and bookmarks are private, and only the owner sees their Likes tab. Mutes are invisible to the muted. |
@@ -429,6 +432,6 @@ log.
 - [0002: Postgres is the only stateful dependency (for now)](adr/0002-postgres-only.md)
 - [0003: UUIDv7 ids and keyset pagination](adr/0003-uuidv7-keyset-pagination.md)
 - [0004: Feeds are skeletons + hydration; fan-out-on-read first](adr/0004-skeleton-hydration-feeds.md)
-- [0005: Process media at upload; immutable keys](adr/0005-media-at-upload.md)
+- [0005: Process media at upload; never-reused keys](adr/0005-media-at-upload.md)
 - [0006: A public moderation log](adr/0006-public-moderation-log.md)
 - [0007: Database sessions, not JWTs](adr/0007-database-sessions.md)

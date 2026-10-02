@@ -55,6 +55,10 @@ describe("validation", () => {
     expect(safeNextPath("/\\evil.com")).toBe("/");
     expect(safeNextPath("https://evil.com")).toBe("/");
     expect(safeNextPath(undefined, "/home")).toBe("/home");
+    // Browsers strip tabs/newlines, so these would otherwise resolve to evil.com.
+    expect(safeNextPath("/\t/evil.com")).toBe("/");
+    expect(safeNextPath("/\n/evil.com")).toBe("/");
+    expect(safeNextPath("/p/123?x=1#reply")).toBe("/p/123?x=1#reply");
   });
 });
 

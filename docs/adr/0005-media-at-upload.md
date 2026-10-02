@@ -1,4 +1,4 @@
-# ADR 0005: Process media at upload; immutable keys
+# ADR 0005: Process media at upload; never-reused keys
 
 - **Status:** accepted
 - **Date:** 2026-10-02
@@ -12,7 +12,9 @@ easy to accidentally serve originals with GPS metadata.
 
 Re-encode every upload once with sharp/libvips: sniff the format, apply orientation, strip all metadata, write a
 ≤2048 px WebP plus a 640 px square thumbnail, and record the dimensions and dominant colour. Store under a fresh UUIDv7
-key and serve with `Cache-Control: immutable`. Storage is a small interface (local disk now, S3/R2 + CDN later).
+key, which is never reused, so a key's bytes never change. The origin still checks visibility before serving: photos
+on removed or deleted posts, or by suspended authors, return 404. Storage is a small interface (local disk now, S3/R2 +
+CDN later, with CDN purge on moderation).
 
 ## Consequences
 

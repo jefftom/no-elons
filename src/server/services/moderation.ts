@@ -49,6 +49,10 @@ export async function reportContent(
     }
   }
   if (!subjectUserId) throw new AppError("Nothing to report.");
+  if (!target.postId) {
+    const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.id, subjectUserId));
+    if (!exists) throw new AppError("That account doesn't exist.", "not_found");
+  }
   if (subjectUserId === reporterId) throw new AppError("You can't report yourself.");
 
   await db.insert(reports).values({
@@ -203,8 +207,14 @@ export async function suspendUser(moderatorId: string, userId: string, rule: str
 }
 
 export async function unsuspendUser(moderatorId: string, userId: string, publicNote: string): Promise<void> {
-  await requireModeratorRow(moderatorId);
+  const mod = await requireModeratorRow(moderatorId);
   await db.transaction(async (tx) => {
+    const [subject] = await tx.select({ role: users.role }).from(users).where(eq(users.id, userId));
+    if (!subject) throw new AppError("Account not found.", "not_found");
+    // Mirrors suspendUser: only an admin can reinstate staff.
+    if (subject.role !== "user" && mod.role !== "admin") {
+      throw new AppError("Only an admin can lift a moderator's suspension.", "forbidden");
+    }
     const [target] = await tx
       .update(users)
       .set({ suspendedAt: null })

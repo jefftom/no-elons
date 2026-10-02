@@ -21,9 +21,9 @@ export async function trendingHashtags(limit = 6): Promise<Trend[]> {
   const rows = await db.execute<{ tag: string; posts: number; people: number }>(sql`
     select h.tag, count(*)::int as posts, count(distinct h.author_id)::int as people
     from post_hashtags h
-    join posts p on p.id = h.post_id
+    join posts p on p.id = h.post_id and p.deleted_at is null and p.removed_at is null
+    join users u on u.id = h.author_id and u.suspended_at is null
     where h.created_at > now() - interval '24 hours'
-      and p.deleted_at is null and p.removed_at is null
     group by h.tag
     order by people desc, posts desc, h.tag asc
     limit 20
@@ -32,8 +32,11 @@ export async function trendingHashtags(limit = 6): Promise<Trend[]> {
   if (value.length < limit) {
     // Quiet day (or a fresh install): fall back to the all-time favourites.
     const allTime = await db.execute<{ tag: string; posts: number; people: number }>(sql`
-      select tag, count(*)::int as posts, count(distinct author_id)::int as people
-      from post_hashtags group by tag order by people desc, posts desc, tag asc limit 20
+      select h.tag, count(*)::int as posts, count(distinct h.author_id)::int as people
+      from post_hashtags h
+      join posts p on p.id = h.post_id and p.deleted_at is null and p.removed_at is null
+      join users u on u.id = h.author_id and u.suspended_at is null
+      group by h.tag order by people desc, posts desc, h.tag asc limit 20
     `);
     const seen = new Set(value.map((v) => v.tag));
     value = [...value, ...allTime.filter((r) => !seen.has(r.tag)).map((r) => ({ tag: r.tag, posts: Number(r.posts), people: Number(r.people) }))];

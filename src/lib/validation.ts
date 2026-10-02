@@ -92,7 +92,17 @@ export function firstError(error: z.ZodError): string {
 
 /** A safe in-app path for ?next= redirects (no open redirects). */
 export function safeNextPath(value: unknown, fallback = "/"): string {
-  if (typeof value !== "string") return fallback;
-  if (!value.startsWith("/") || value.startsWith("//") || value.startsWith("/\\")) return fallback;
-  return value;
+  if (typeof value !== "string" || !value.startsWith("/")) return fallback;
+  // Browsers ignore tabs/newlines and treat "\" like "/" in URLs, so "/\t/evil.com" would
+  // leave the site. Reject control characters and backslashes outright…
+  if (/[\u0000-\u001f\u007f\\]/.test(value)) return fallback;
+  // …then make sure the path really resolves to our own origin.
+  try {
+    const base = "http://noelons.invalid";
+    const url = new URL(value, base);
+    if (url.origin !== base) return fallback;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return fallback;
+  }
 }

@@ -69,8 +69,21 @@ export async function endSession() {
   store.delete(SESSION_COOKIE);
 }
 
-/** Best-effort client IP for rate limiting (trusts the first proxy hop). */
+/**
+ * Client IP for rate limiting.
+ *
+ * X-Forwarded-For is client-controlled except for the entries appended by
+ * proxies we run. With TRUST_PROXY_HOPS=N (default 1: one load balancer/CDN in
+ * front of the app) the real client is the Nth entry from the right; anything
+ * to the left of it may be spoofed and is ignored. Deployments that expose the
+ * app directly should put a reverse proxy in front — see docs/ARCHITECTURE.md §11.
+ */
 export async function clientIp(): Promise<string> {
   const h = await headers();
-  return h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip") || "local";
+  const hops = Math.max(1, Number(process.env.TRUST_PROXY_HOPS ?? 1) || 1);
+  const chain = (h.get("x-forwarded-for") ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return chain[Math.max(0, chain.length - hops)] ?? h.get("x-real-ip") ?? "local";
 }

@@ -69,9 +69,24 @@ async function requireActiveUser(id: string, exec: Executor) {
   if (!u || u.suspendedAt) throw new AppError("That account isn't available.", "not_found");
 }
 
+async function requireUser(id: string, exec: Executor) {
+  const [u] = await exec.select({ id: users.id }).from(users).where(eq(users.id, id));
+  if (!u) throw new AppError("That account doesn't exist.", "not_found");
+}
+
+/**
+ * Serialise graph changes between the same two people (in either direction),
+ * so a follow racing a block can't leave a follow behind the block.
+ */
+async function lockPair(tx: Executor, a: string, b: string) {
+  const key = a < b ? `${a}:${b}` : `${b}:${a}`;
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${key}, 0))`);
+}
+
 export async function follow(viewerId: string, targetId: string, at?: Date): Promise<void> {
   if (viewerId === targetId) throw new AppError("You can't follow yourself (but we admire the confidence).");
   await db.transaction(async (tx) => {
+    await lockPair(tx, viewerId, targetId);
     await requireActiveUser(targetId, tx);
     if (await isBlockedEitherWay(viewerId, targetId, tx)) throw new AppError("You can't follow this account.", "forbidden");
     const inserted = await tx
@@ -108,6 +123,8 @@ export async function unfollow(viewerId: string, targetId: string): Promise<void
 export async function block(viewerId: string, targetId: string): Promise<void> {
   if (viewerId === targetId) throw new AppError("You can't block yourself.");
   await db.transaction(async (tx) => {
+    await lockPair(tx, viewerId, targetId);
+    await requireUser(targetId, tx);
     await tx.insert(blocks).values({ blockerId: viewerId, blockedId: targetId }).onConflictDoNothing();
     await removeFollow(tx, viewerId, targetId);
     await removeFollow(tx, targetId, viewerId);
@@ -120,6 +137,7 @@ export async function unblock(viewerId: string, targetId: string): Promise<void>
 
 export async function mute(viewerId: string, targetId: string): Promise<void> {
   if (viewerId === targetId) throw new AppError("You can't mute yourself.");
+  await requireUser(targetId, db);
   await db.insert(mutes).values({ muterId: viewerId, mutedId: targetId }).onConflictDoNothing();
 }
 

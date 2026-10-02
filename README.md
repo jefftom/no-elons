@@ -90,6 +90,7 @@ docs/               product brief, architecture, ADRs
 | `MEDIA_DIR` | `./.data/media` | Where the local storage driver writes images |
 | `MEDIA_PUBLIC_BASE_URL` | `/media` | Point at your CDN/bucket in production |
 | `DATABASE_POOL_MAX` | `10` | Connections per app instance |
+| `TRUST_PROXY_HOPS` | `1` | How many proxies (LB/CDN) sit in front of the app; used to read the real client IP for rate limits |
 | `SEED_PASSWORD` | `noelons-demo` | Password for seeded accounts |
 
 ## License

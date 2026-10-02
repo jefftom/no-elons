@@ -16,11 +16,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node scripts/migrate.mjs",
-    "db:seed": "tsx scripts/seed.ts",
-    "db:reset": "tsx scripts/reset.ts && npm run db:migrate && npm run db:seed",
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
+    "db:seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
+    "db:reset": "tsx --env-file-if-exists=.env scripts/reset.ts && npm run db:migrate && npm run db:seed",
     "db:studio": "drizzle-kit studio",
-    "promote": "tsx scripts/promote.ts"
+    "promote": "tsx --env-file-if-exists=.env scripts/promote.ts"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.2.1",

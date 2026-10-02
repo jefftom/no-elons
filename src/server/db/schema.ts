@@ -153,7 +153,12 @@ export const postMedia = pgTable(
     color: text("color").notNull().default("#888888"),
     createdAt: createdAt(),
   },
-  (t) => [index("post_media_post_idx").on(t.postId, t.position)],
+  (t) => [
+    index("post_media_post_idx").on(t.postId, t.position),
+    // The /media route checks a blob's post is still visible before serving it.
+    index("post_media_storage_key_idx").on(t.storageKey),
+    index("post_media_thumb_key_idx").on(t.thumbKey),
+  ],
 );
 
 /** Previous versions of edited posts. Edits leave receipts. */
