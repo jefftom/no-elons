@@ -48,6 +48,14 @@ describe.skipIf(!dbAvailable())("regressions", () => {
     expect(list.memberCount).toBe(8);
   });
 
+  it("you can't add someone to a list across a block", async () => {
+    const owner = await makeUser();
+    const other = await makeUser();
+    const listId = await createList(owner.id, { name: "l", description: "", isPrivate: false });
+    await block(other.id, owner.id);
+    await expect(addListMember(owner.id, listId, other.username)).rejects.toThrow(/can't add/);
+  });
+
   it("deleting an account updates member counts of lists it was on", async () => {
     const owner = await makeUser();
     const leaver = await makeUser();

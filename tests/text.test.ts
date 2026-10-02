@@ -61,3 +61,15 @@ describe("charCount / normalizeBody", () => {
     expect(normalizeBody("  hi\r\n\r\n\r\n\r\nthere ​ ")).toBe("hi\n\nthere");
   });
 });
+
+describe("mentions of other servers", () => {
+  it("doesn't treat @user@domain as a local mention", () => {
+    expect(extractMentions("hi @maya@mastodon.social and @theo")).toEqual(["theo"]);
+    expect(tokenize("@maya@mastodon.social").every((t) => t.type === "text")).toBe(true);
+  });
+
+  it("caps mentions per post", () => {
+    const body = Array.from({ length: 15 }, (_, i) => `@user${i}`).join(" ");
+    expect(extractMentions(body)).toHaveLength(10);
+  });
+});

@@ -12,16 +12,17 @@
   --line: #e9e2d9;
   --ink: #18141d;
   --muted: #6f6777;
-  --accent: #ff5a3c;
+  /* AA: white on accent 4.8:1, link on paper 5.4:1 */
+  --accent: #d4381b;
   --stop: #e4312b;
-  --accent-hover: #ec4627;
+  --accent-hover: #bd2f15;
   --accent-soft: #ffece6;
   --accent-ink: #ffffff;
   --like: #f43f5e;
   --like-soft: #ffe4e9;
   --repost: #0f9f6e;
   --repost-soft: #dcf7ec;
-  --link: #d9432a;
+  --link: #c0301a;
   --danger: #dc2626;
   --warn: #d97706;
   --shadow: 0 1px 2px rgb(24 20 29 / 0.06), 0 8px 24px rgb(24 20 29 / 0.06);

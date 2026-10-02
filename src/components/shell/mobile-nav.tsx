@@ -21,7 +21,7 @@ export function MobileTopBar({ viewer }: { viewer: ViewerInfo | null }) {
       </Link>
       {viewer ? (
         <Link href="/settings" className="text-sm font-semibold text-muted">
-          Settings
+          More
         </Link>
       ) : (
         <Link href="/login" className="text-sm font-semibold text-accent">

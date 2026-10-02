@@ -34,6 +34,8 @@ describe("validation", () => {
     expect(usernameSchema.safeParse("admin").success).toBe(false);
     expect(usernameSchema.safeParse("elon").success).toBe(false);
     expect(usernameSchema.safeParse("melon").success).toBe(true);
+    expect(usernameSchema.safeParse("postmaster").success).toBe(false);
+    expect(usernameSchema.safeParse("abuse").success).toBe(false);
   });
 
   it("validates signup", () => {

@@ -5,6 +5,7 @@ import { db } from "../db";
 import { listMembers, lists, users } from "../db/schema";
 import { AppError } from "../errors";
 import { toUserSummary, type UserSummary } from "../views";
+import { isBlockedEitherWay } from "./relationships";
 
 export type ListView = {
   id: string;
@@ -79,6 +80,7 @@ export async function addListMember(viewerId: string, listId: string, username: 
   await requireOwnList(listId, viewerId);
   const [user] = await db.select().from(users).where(eq(users.username, username.trim().replace(/^@/, "").toLowerCase()));
   if (!user || user.suspendedAt) throw new AppError("No account with that username.", "not_found");
+  if (await isBlockedEitherWay(viewerId, user.id)) throw new AppError("You can't add that account to a list.", "forbidden");
   await db.transaction(async (tx) => {
     // Lock the list so concurrent adds serialise: the cap and the counter stay exact.
     const [list] = await tx.select({ memberCount: lists.memberCount }).from(lists).where(eq(lists.id, listId)).for("update");

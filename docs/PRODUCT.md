@@ -108,6 +108,8 @@ people left their old platform.
 
 ## Roadmap
 
+> The detailed, prioritised plan (launch checklist, now/next/later, founder decisions) is in [ROADMAP.md](ROADMAP.md). The table below is the original product-level sketch.
+
 | Phase | Theme | Highlights |
 | --- | --- | --- |
 | **1 (next 6–8 weeks)** | Polish and growth loops | Infinite scroll, image lightbox, link preview cards, email verification and password reset, onboarding with starter packs, follow import, Web Push, PWA install |

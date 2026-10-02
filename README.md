@@ -22,6 +22,7 @@ Read the thinking behind it:
 - 📦 [**Product brief**](docs/PRODUCT.md) — the IG × old-Twitter blend, *what else* to add, personas, roadmap, business model, risks
 - 🏗️ [**Architecture**](docs/ARCHITECTURE.md) — system design, data model, timelines at scale, hydration, media, moderation, security, federation plan
 - 🧭 [**Decision records**](docs/adr) — the why behind the big choices
+- 🗺️ [**Roadmap: what's next**](docs/ROADMAP.md) — the next 5 moves, the launch checklist, and the founder-only decisions
 
 ## Quick start
 

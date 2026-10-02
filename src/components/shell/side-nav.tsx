@@ -83,7 +83,7 @@ export function SideNav({ viewer, unread, openReports }: { viewer: ViewerInfo | 
       </div>
 
       {viewer ? (
-        <div className="flex items-center gap-3 rounded-full p-2 hover:bg-surface-2">
+        <div className="flex flex-col items-center gap-1 rounded-3xl p-2 hover:bg-surface-2 xl:flex-row xl:gap-3 xl:rounded-full">
           <Link href={`/@${viewer.username}`} className="flex min-w-0 flex-1 items-center gap-3">
             <Avatar user={viewer} size={40} />
             <span className="hidden min-w-0 flex-1 xl:block">
@@ -91,7 +91,7 @@ export function SideNav({ viewer, unread, openReports }: { viewer: ViewerInfo | 
               <span className="block truncate text-sm text-muted">@{viewer.username}</span>
             </span>
           </Link>
-          <form action={logoutAction} className="hidden xl:block">
+          <form action={logoutAction}>
             <button type="submit" className="rounded-full p-2 text-muted hover:bg-surface-3 hover:text-ink" title="Log out" aria-label="Log out">
               <LogOut size={18} />
             </button>

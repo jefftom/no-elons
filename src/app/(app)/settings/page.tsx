@@ -1,4 +1,6 @@
-import { Download } from "lucide-react";
+import Link from "next/link";
+import { Bookmark, Download, Eye, List, LogOut, ScrollText, Shield } from "lucide-react";
+import { logoutAction } from "@/app/actions/auth";
 import { PageHeader } from "@/components/page-header";
 import { setHideCountsAction } from "@/app/actions/settings";
 import { requireViewer } from "@/server/auth/viewer";
@@ -22,7 +24,31 @@ export default async function SettingsPage() {
   const profile = toProfileView(viewer);
   return (
     <>
-      <PageHeader title="Settings" subtitle={`@${viewer.username}`} />
+      <PageHeader
+        title="Settings"
+        subtitle={`@${viewer.username}`}
+        right={
+          <form action={logoutAction}>
+            <button type="submit" className="btn-outline">
+              <LogOut size={16} /> Log out
+            </button>
+          </form>
+        }
+      />
+      {/* Phones have a 5-tab bar; everything else lives here. */}
+      <nav className="grid grid-cols-2 gap-2 border-b border-line p-4 sm:hidden" aria-label="More">
+        {[
+          { href: "/bookmarks", label: "Bookmarks", icon: <Bookmark size={18} /> },
+          { href: "/lists", label: "Lists", icon: <List size={18} /> },
+          { href: "/charter", label: "The Charter", icon: <ScrollText size={18} /> },
+          { href: "/transparency", label: "Transparency", icon: <Eye size={18} /> },
+          ...(viewer.role !== "user" ? [{ href: "/admin", label: "Moderation", icon: <Shield size={18} /> }] : []),
+        ].map((l) => (
+          <Link key={l.href} href={l.href} className="card flex items-center gap-2 px-3 py-3 text-[15px] font-semibold hover:bg-surface-2">
+            {l.icon} {l.label}
+          </Link>
+        ))}
+      </nav>
       <Section title="Profile" description="This is what people see on your profile.">
         <ProfileForm profile={profile} />
       </Section>

@@ -59,6 +59,11 @@ async function photo(scene: SceneName, seed: number, w?: number, h?: number) {
 }
 
 async function main() {
+  if (process.env.NODE_ENV === "production" && process.env.SEED_ALLOW_PRODUCTION !== "1") {
+    console.error("Refusing to seed demo accounts (with a known password and an admin) into production.");
+    process.exitCode = 1;
+    return;
+  }
   const [existing] = await db.select({ id: users.id }).from(users).limit(1);
   if (existing) {
     console.log("Database already has users — skipping seed. Run `npm run db:reset` to start fresh.");

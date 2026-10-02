@@ -17,7 +17,8 @@ const TOKEN_RE = new RegExp(
   [
     String.raw`(?<link>https?:\/\/[^\s<>"']+)`,
     String.raw`(?<=^|[^\p{L}\p{N}_&\/])(?<hashtag>#[\p{L}\p{N}_]{1,64})`,
-    String.raw`(?<=^|[^\p{L}\p{N}_\/])(?<mention>@${USERNAME_PATTERN})`,
+    // "@maya@mastodon.social" is someone else's account, not our @maya.
+    String.raw`(?<=^|[^\p{L}\p{N}_\/])(?<mention>@${USERNAME_PATTERN})(?![@\p{L}\p{N}_])`,
   ].join("|"),
   "gu",
 );
@@ -86,7 +87,8 @@ export function extractHashtags(body: string): string[] {
 export function extractMentions(body: string): string[] {
   const names = new Set<string>();
   for (const t of tokenize(body)) if (t.type === "mention") names.add(t.username);
-  return [...names].slice(0, 20);
+  // Cap who a single post can notify (anti-spam).
+  return [...names].slice(0, 10);
 }
 
 /** Length as people perceive it: grapheme clusters (an emoji counts once). */
