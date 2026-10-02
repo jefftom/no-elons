@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+/*
+ * NoElons design tokens. Warm paper + ink, with a "signal coral" accent.
+ * Everything is a CSS variable so dark mode is just a different set of values.
+ */
+:root {
+  --bg: #fbf8f4;
+  --surface: #ffffff;
+  --surface-2: #f4efe9;
+  --surface-3: #ebe4dc;
+  --line: #e9e2d9;
+  --ink: #18141d;
+  --muted: #6f6777;
+  --accent: #ff5a3c;
+  --accent-hover: #ec4627;
+  --accent-soft: #ffece6;
+  --accent-ink: #ffffff;
+  --like: #f43f5e;
+  --like-soft: #ffe4e9;
+  --repost: #0f9f6e;
+  --repost-soft: #dcf7ec;
+  --link: #d9432a;
+  --danger: #dc2626;
+  --warn: #d97706;
+  --shadow: 0 1px 2px rgb(24 20 29 / 0.06), 0 8px 24px rgb(24 20 29 / 0.06);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f0e13;
+    --surface: #17161c;
+    --surface-2: #201f27;
+    --surface-3: #2a2832;
+    --line: #2b2933;
+    --ink: #f3efe9;
+    --muted: #9c95a6;
+    --accent: #ff6b4f;
+    --accent-hover: #ff8269;
+    --accent-soft: #3b1f19;
+    --accent-ink: #160b08;
+    --like: #fb7185;
+    --like-soft: #3d1a22;
+    --repost: #34d399;
+    --repost-soft: #123326;
+    --link: #ff9077;
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-like: var(--like);
+  --color-like-soft: var(--like-soft);
+  --color-repost: var(--repost);
+  --color-repost-soft: var(--repost-soft);
+  --color-link: var(--link);
+  --color-danger: var(--danger);
+  --color-warn: var(--warn);
+  --shadow-card: var(--shadow);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  --font-display: ui-rounded, "SF Pro Rounded", "Nunito", "Quicksand", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--line);
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  details > summary {
+    list-style: none;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+/* Component-ish utilities (Tailwind v4: @utility so they can be composed with @apply). */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-accent text-accent-ink hover:bg-accent-hover;
+}
+@utility btn-ink {
+  @apply btn bg-ink text-bg hover:opacity-90;
+}
+@utility btn-outline {
+  @apply btn border border-line bg-surface text-ink hover:bg-surface-2;
+}
+@utility btn-ghost {
+  @apply btn text-ink hover:bg-surface-2;
+}
+@utility btn-danger {
+  @apply btn bg-danger text-white hover:opacity-90;
+}
+@utility input {
+  @apply w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[15px] text-ink placeholder:text-muted outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/15;
+}
+@utility label {
+  @apply mb-1.5 block text-sm font-semibold text-ink;
+}
+@utility card {
+  @apply rounded-2xl border border-line bg-surface;
+}
+@utility link {
+  @apply text-link underline-offset-2 hover:underline;
+}
+@utility page-title {
+  @apply font-display text-xl font-extrabold tracking-tight;
+}
+
+/* Thin, unobtrusive scrollbars on the sticky rails. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-3) transparent;
+}
+
+/* Post body text: keep the author's line breaks, break long URLs. */
+.post-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}

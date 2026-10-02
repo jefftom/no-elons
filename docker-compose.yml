@@ -1,0 +1,37 @@
+# Local infrastructure. `docker compose up -d db` is all you need for dev.
+# `docker compose up --build` runs the full production image too.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: noelons
+      POSTGRES_PASSWORD: noelons
+      POSTGRES_DB: noelons
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U noelons"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    profiles: ["full"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://noelons:noelons@db:5432/noelons
+      PUBLIC_URL: http://localhost:3000
+      MEDIA_DIR: /data/media
+    ports:
+      - "3000:3000"
+    volumes:
+      - media:/data/media
+
+volumes:
+  pgdata:
+  media:

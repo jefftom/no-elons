@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /settings
+Disallow: /admin
+Disallow: /compose
+Disallow: /api/
